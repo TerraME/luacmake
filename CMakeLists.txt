@@ -11,7 +11,7 @@ if(WIN32)
     add_definitions(/MP)
   endif()  
 else(UNIX)
-  add_definitions(-DLUA_USE_UNIX -DLUA_USE_DLOPEN)
+  add_definitions(-DLUA_USE_DLOPEN)
 endif()
 
 include_directories(src ${CMAKE_CURRENT_BINARY_DIR})
