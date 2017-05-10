@@ -2,10 +2,12 @@ project(lua C)
 
 cmake_minimum_required(VERSION 2.8.9)
 
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR (CMAKE_CXX_COMPILER MATCHES ".*clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Wextra")
+endif()
+
 if(WIN32)
   add_definitions(-DLUA_BUILD_AS_DLL)
-  add_definitions(-DLUA_COMPAT_BITLIB)
-  add_definitions(-DLUA_COMPAT_APIINTCASTS)
   if(MSVC)
     set(CMAKE_DEBUG_POSTFIX "d")
     add_definitions(/MP)
@@ -13,6 +15,10 @@ if(WIN32)
 else(UNIX)
   add_definitions(-DLUA_USE_DLOPEN)
 endif()
+
+add_definitions(-DLUA_COMPAT_BITLIB)
+add_definitions(-DLUA_COMPAT_APIINTCASTS)
+add_definitions(-DLUA_COMPAT_5_2)
 
 include_directories(src ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -30,23 +36,27 @@ set_target_properties(liblua PROPERTIES OUTPUT_NAME lua CLEAN_DIRECT_OUTPUT 1)
 add_executable(lua ${SRC_LUA})
 
 if(UNIX)
-target_link_libraries(lua liblua m dl)
+  target_link_libraries(lua liblua m dl)
 else()
-target_link_libraries(lua liblua)
+  target_link_libraries(lua liblua)
 endif()
 
 add_library(liblua_static STATIC ${SRC_LIB})
 
 add_executable(luac ${SRC_LUAC})
+
 if(UNIX)
-target_link_libraries(luac liblua_static m dl)
+  target_link_libraries(luac liblua_static m dl)
 else()
-target_link_libraries(luac liblua_static)
+  target_link_libraries(luac liblua_static)
 endif()
 
 set(INSTALL_BIN bin CACHE PATH "Where to install binaries to.")
 set(INSTALL_LIB lib CACHE PATH "Where to install libraries to.")
-set(INSTALL_INC include CACHE PATH "Where to install headers to.")
+
+if(NOT DEFINED INSTALL_INC)
+  set(INSTALL_INC include CACHE PATH "Where to install headers to.")
+endif()
 
 install(TARGETS lua luac RUNTIME DESTINATION ${INSTALL_BIN})
 install(TARGETS liblua DESTINATION ${INSTALL_LIB})
